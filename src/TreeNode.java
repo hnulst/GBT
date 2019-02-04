@@ -39,7 +39,7 @@ public class TreeNode {
     }
 
 
-    private float[][] filterByIndex2D(float[][] matrix, int[] indexes) {
+    private float[][] filterByIndex(float[][] matrix, int[] indexes) {
         float[][] m = new float[indexes.length][matrix[0].length];
         for (int i = 0; i < indexes.length; i++) {
             m[i] = matrix[indexes[i]];
@@ -47,7 +47,7 @@ public class TreeNode {
         return m;
     }
 
-    private float[] filterByIndex1D(float[] derivates, int[] indexes) {
+    private float[] filterByIndex(float[] derivates, int[] indexes) {
         float[] d = new float[indexes.length];
         for (int i = 0; i < indexes.length; i++) {
             d[i] = derivates[indexes[i]];
@@ -79,12 +79,12 @@ public class TreeNode {
         return sum;
     }
 
-    private float calculateGHλ(float g, float h) {
-        return -(g * g) / 2 * (h + λ);
+    private float calculateMinLoss(float g, float h) {
+        return -(g * g) / (2 * (h + λ));
     }
 
     private float calculateSplitGain(float G, float H, float GL, float HL, float GR, float HR) {
-        return this.calculateGHλ(G, H) - this.calculateGHλ(GL, HL) - this.calculateGHλ(GR, HR);
+        return this.calculateMinLoss(G, H) - this.calculateMinLoss(GL, HL) - this.calculateMinLoss(GR, HR);
     }
 
     private float calculateLeafWeight() {
@@ -165,9 +165,9 @@ public class TreeNode {
             this.splitFeatureValue = bestSplitValue;
             this.splitFeatureId = bestSplitIndex;
 
-            TreeNode left = new TreeNode(filterByIndex2D(this.matrix, leftIndexes),
-                    filterByIndex1D(this.gradients, leftIndexes),
-                    filterByIndex1D(this.hessians, leftIndexes),
+            TreeNode left = new TreeNode(filterByIndex(this.matrix, leftIndexes),
+                    filterByIndex(this.gradients, leftIndexes),
+                    filterByIndex(this.hessians, leftIndexes),
                     depth + 1,
                     this.maxDepth,
                     this.minSplitGain,
@@ -177,9 +177,9 @@ public class TreeNode {
             left.build();
             this.leftChild = left;
 
-            TreeNode right = new TreeNode(filterByIndex2D(this.matrix, rightIndexes),
-                    filterByIndex1D(this.gradients, rightIndexes),
-                    filterByIndex1D(this.hessians, rightIndexes),
+            TreeNode right = new TreeNode(filterByIndex(this.matrix, rightIndexes),
+                    filterByIndex(this.gradients, rightIndexes),
+                    filterByIndex(this.hessians, rightIndexes),
                     depth + 1,
                     this.maxDepth,
                     this.minSplitGain,

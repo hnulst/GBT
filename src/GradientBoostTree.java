@@ -10,15 +10,15 @@ public class GradientBoostTree {
     private float[] labels;
 
     // const
-    private final int maxTrainingRound = 200;
-    private final int maxDepth = 5;
-    private final float shrinkageRate = 0.3f;
-    private final float minSplitGain = 0.1f;
-    private final int minSplitNodeNum = 3;
-    private final float λ = 0.1f;
+    private final int maxTrainingRound = 100;   //n_estimators
+    private final int maxDepth = 6;             //max_depth
+    private final float shrinkageRate = 0.3f;   //eta
+    private final float minSplitGain = 0.0f;    //gama
+    private final int minSplitNodeNum = 1;      //min_child_weight
+    private final float λ = 0.1f;               //lambda
 
     private static final String path =
-            "C:\\Users\\Jenny\\IdeaProjects\\GBT\\src\\TempLinkoping2016.txt";
+            "C:\\Users\\lsj1984\\IdeaProjects\\GBT\\src\\TempLinkoping2016.txt";
     private static final int sampleNum = 366;
 
     public static void main(String[] args) throws Exception {
