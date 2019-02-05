@@ -18,22 +18,21 @@ public class GradientBoostTree {
     private final float λ = 0.1f;               //lambda
 
     private static final String path =
-            "C:\\Users\\lsj1984\\IdeaProjects\\GBT\\src\\TempLinkoping2016.txt";
-    private static final int sampleNum = 366;
+            "C:\\Users\\lsj1984\\IdeaProjects\\GBT\\src\\regression.train";
+    private static final int sampleNum = 7000;
 
     public static void main(String[] args) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(path));
-        float[][] X = new float[sampleNum][1];
+        float[][] X = new float[sampleNum][28];
         float[] Y = new float[sampleNum];
         String line = null;
         int cnt = 0;
         while ((line = reader.readLine()) != null) {
-            if (cnt != 0) {
-                String[] strs = line.split("\t");
-                float x = Float.parseFloat(strs[0].trim());
-                float y = Float.parseFloat(strs[1].trim());
-                X[cnt - 1][0] = x;
-                Y[cnt - 1] = y;
+            String[] strs = line.split("\t");
+            float y = Float.parseFloat(strs[0].trim());
+            Y[cnt] = y;
+            for (int i = 1; i < 29; i++) {
+                X[cnt][i - 1] = Float.parseFloat(strs[i].trim());
             }
             cnt++;
         }
@@ -52,9 +51,9 @@ public class GradientBoostTree {
         for (int round = 0; round < maxTrainingRound; round++) {
             float shrink = 1f;
             float[] predictions = this.predictBatch(trainingSet);
-            float[] gradients = this.calculateMseGradients(predictions, labels);
-            float[] hessians = this.calculateMseHessians(predictions, labels);
-            float mseLoss = this.calculateMseLoss(predictions, labels);
+            float[] gradients = this.calculateLogisticGradients(predictions, labels);
+            float[] hessians = this.calculateLogisticHessians(predictions, labels);
+            float mseLoss = this.calculateMeanLogisticLoss(predictions, labels);
 
             System.out.println("mse loss at round " + round + ": " + mseLoss);
             if (round != 0) {
@@ -66,8 +65,48 @@ public class GradientBoostTree {
             tree.build();
             trees.add(tree);
         }
+        float[] probs = predictBatch(trainingSet);
+        float sum = 0f;
+        for (int i = 0; i < labels.length; i++) {
+            probs[i] = logistic(probs[i]);
+            float pred = probs[i] > 0.5f ? 1f : 0f;
+            sum += ((pred - labels[i]) * (pred - labels[i]));
+        }
+        System.out.println(sum);
         long end = System.currentTimeMillis();
-        System.out.println("training cost " + String.valueOf(end - start) + " ms");
+        System.out.println("training cost " + (end - start) + " ms");
+    }
+
+    private float logistic(float y) {
+        return (float) (1d / (1 + Math.exp(-y)));
+    }
+
+    private float[] calculateLogisticGradients(float[] predictions, float[] labels) {
+        float[] grads = new float[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            grads[i] = logistic(predictions[i]) - labels[i];
+        }
+        return grads;
+    }
+
+    private float[] calculateLogisticHessians(float[] predictions, float[] labels) {
+        float[] hessians = new float[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            float p = logistic(predictions[i]);
+            hessians[i] = p * (1 - p);
+        }
+        return hessians;
+    }
+
+    private float calculateMeanLogisticLoss(float[] predictions, float[] labels) {
+        float sum = 0f;
+        for (int i = 0; i < labels.length; i++) {
+            float y = labels[i];
+            float y_ = predictions[i];
+            sum += (y * Math.log((1d + Math.exp(-y_)))
+                    + (1 - y) * Math.log(1d + Math.exp(y_)));
+        }
+        return sum / labels.length;
     }
 
     private float[] calculateMseGradients(float[] predictions, float[] labels) {
